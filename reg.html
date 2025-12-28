@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Регистрация - FarmQuest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="modal show" id="registerModal">
+    <div class="modal-content">
+      <h2>Регистрация</h2>
+      <p>Создайте новый аккаунт для FarmQuest</p>
+      
+      <form id="registerForm" onsubmit="registerUser(event)">
+        <input type="text" id="regUsername" placeholder="Имя пользователя" required>
+        <input type="email" id="regEmail" placeholder="Email" required>
+        <input type="password" id="regPassword" placeholder="Пароль (минимум 6 символов)" required minlength="6">
+        
+        <div class="error-message" id="registerError"></div>
+        
+        <div class="modal-btn-group">
+          <button type="submit" class="btn btn-start">Зарегистрироваться</button>
+          <button type="button" class="btn btn-secondary" onclick="goToLogin()">Уже есть аккаунт?</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let users = JSON.parse(localStorage.getItem('farmquest_users')) || [];
+    
+    const regUsername = document.getElementById('regUsername');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const registerError = document.getElementById('registerError');
+    const registerForm = document.getElementById('registerForm');
+
+    function registerUser(e) {
+      e.preventDefault();
+      
+      const username = regUsername.value.trim();
+      const email = regEmail.value.trim();
+      const password = regPassword.value;
+      
+      if (username.length < 3) {
+        registerError.textContent = 'Имя пользователя должно быть минимум 3 символа';
+        return;
+      }
+      if (!email.includes('@')) {
+        registerError.textContent = 'Введите корректный email';
+        return;
+      }
+      if (password.length < 6) {
+        registerError.textContent = 'Пароль должен быть минимум 6 символов';
+        return;
+      }
+      
+      const userExists = users.some(u => 
+        u.username.toLowerCase() === username.toLowerCase() || 
+        u.email.toLowerCase() === email.toLowerCase()
+      );
+      
+      if (userExists) {
+        registerError.textContent = 'Пользователь с таким именем или email уже существует';
+        return;
+      }
+      
+      const newUser = {
+        id: Date.now(),
+        username: username,
+        email: email,
+        password: password,
+        createdAt: new Date().toISOString(),
+        coins: 100
+      };
+      
+      users.push(newUser);
+      localStorage.setItem('farmquest_users', JSON.stringify(users));
+      
+      alert(`✅ Регистрация успешна!\n\nЛогин: ${username}\nEmail: ${email}`);
+      
+      window.location.href = 'screentest(1).html';
+    }
+    
+    function goToLogin() {
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>
