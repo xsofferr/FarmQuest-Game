@@ -42,7 +42,6 @@ function logout() {
   updateUserUI();
 }
 
-//ЗАГОТОВКИ
 function startGame() {
   alert('Скоро будет экран игры!');
 }
@@ -50,3 +49,4 @@ function startGame() {
 function showScreen(screenId) {
   alert(`Скоро будет экран: ${screenId}`);
 }
+

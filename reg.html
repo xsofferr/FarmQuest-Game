@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
   <div class="modal show" id="registerModal">
     <div class="modal-content">
@@ -22,7 +21,7 @@
         
         <div class="modal-btn-group">
           <button type="submit" class="btn btn-start">Зарегистрироваться</button>
-          <button type="button" class="btn btn-secondary" onclick="goToLogin()">Уже есть аккаунт?</button>
+          <button type="button" class="btn btn-secondary" onclick="goToLogin()">Уже есть аккаунт? Вход</button>
         </div>
       </form>
     </div>
@@ -30,12 +29,12 @@
 
   <script>
     let users = JSON.parse(localStorage.getItem('farmquest_users')) || [];
+    let currentUser = null;
     
     const regUsername = document.getElementById('regUsername');
     const regEmail = document.getElementById('regEmail');
     const regPassword = document.getElementById('regPassword');
     const registerError = document.getElementById('registerError');
-    const registerForm = document.getElementById('registerForm');
 
     function registerUser(e) {
       e.preventDefault();
@@ -79,8 +78,8 @@
       users.push(newUser);
       localStorage.setItem('farmquest_users', JSON.stringify(users));
       
-      alert(`✅ Регистрация успешна!\n\nЛогин: ${username}\nEmail: ${email}`);
-      
+      currentUser = { id: newUser.id, username: newUser.username, email: newUser.email };
+      localStorage.setItem('farmquest_currentUser', JSON.stringify(currentUser));
       window.location.href = 'screentest(1).html';
     }
     
