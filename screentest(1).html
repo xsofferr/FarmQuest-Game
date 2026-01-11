@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>FarmQuest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <div class="screen menu" id="menuScreen">
+    <h1>Farm<span>Quest</span></h1>
+    <p>Развивай ферму и управляй персонажами</p>
+
+    <div class="current-user">
+      Аккаунт: <span id="currentUserLabel">Не вошли</span>
+    </div>
+
+    <button class="btn btn-start" onclick="startGame()">🌱 Войти на карту</button>
+    <button class="btn btn-secondary" onclick="showScreen('dbScreen')">👤 Управление персонажами</button>
+    <button class="btn btn-secondary" onclick="loginAsGuest()">🙋 Войти как гость</button>
+    <button class="btn btn-secondary" onclick="showLoginModal()">🔑 Войти в аккаунт</button>
+    <button class="btn btn-secondary" onclick="showRegisterModal()">📝 Регистрация</button>
+
+    <button class="btn-logout" onclick="logout()" id="logoutBtn" style="display:none;">Выйти из аккаунта</button>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Вход - FarmQuest</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="modal show" id="loginModal">
+    <div class="modal-content">
+      <h2>Вход в аккаунт</h2>
+      <p>Введите данные для входа в FarmQuest</p>
+      
+      <form id="loginForm" onsubmit="loginUser(event)">
+        <input type="text" id="loginUsername" placeholder="Логин или Email" required>
+        <input type="password" id="loginPassword" placeholder="Пароль" required>
+        
+        <div class="error-message" id="loginError"></div>
+        
+        <div class="modal-btn-group">
+          <button type="submit" class="btn btn-start">Войти</button>
+          <button type="button" class="btn btn-secondary" onclick="goToRegister()">Нет аккаунта? Регистрация</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let users = JSON.parse(localStorage.getItem('farmquest_users')) || [];
+    let currentUser = null;
+    
+    function loginUser(e) {
+      e.preventDefault();
+      const loginInput = document.getElementById('loginUsername').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const loginError = document.getElementById('loginError');
+      
+      const user = users.find(u => 
+        (u.username === loginInput || u.email === loginInput) && u.password === password
+      );
+      
+      if (!user) {
+        loginError.textContent = 'Неверный логин или пароль';
+        return;
+      }
+      
+      currentUser = { id: user.id, username: user.username, email: user.email };
+      localStorage.setItem('farmquest_currentUser', JSON.stringify(currentUser));
+      window.location.href = 'screentest(1).html';
+    }
+    
+    function goToRegister() {
+      window.location.href = 'reg.html';
+    }
+  </script>
+</body>
+</html>
