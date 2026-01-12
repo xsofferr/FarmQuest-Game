@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>FarmQuest - Ферма</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="styles.css">
+<script src="audio.js"></script>
+<script src="script.js"></script>
+<script src="snake-game.js"></script>
+</head>
+<body>
+<div class="farm-container">
+    <div class="map-panel">
+        <h2>Карта фермы</h2>
+        <p class="map-subtitle">Выберите локацию: поля, магазины или миниигры</p>
+        <div class="map-grid">
+            <div class="map-tile active" data-location="farm">
+                <span class="icon">🌾</span>
+                <div class="map-tile-title">Поля</div>
+                <div class="map-tile-desc">Сажайте и собирайте урожай</div>
+            </div>
+            <div class="map-tile" data-location="seeds">
+                <span class="icon">🌱</span>
+                <div class="map-tile-title">Магазин семян</div>
+                <div class="map-tile-desc">Покупка разных культур</div>
+            </div>
+            <div class="map-tile" data-location="tools">
+                <span class="icon">🪓</span>
+                <div class="map-tile-title">Инструменты</div>
+                <div class="map-tile-desc">Бонус к сбору урожая</div>
+            </div>
+            <div class="map-tile" data-location="equipment">
+                <span class="icon">🚜</span>
+                <div class="map-tile-title">Оборудование</div>
+                <div class="map-tile-desc">Рост и доп. поля</div>
+            </div>
+            <div class="map-tile" data-location="minigames">
+                <span class="icon">🎮</span>
+                <div class="map-tile-title">Миниигры</div>
+                <div class="map-tile-desc">Зарабатывайте бонусные монеты</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="detail-panel">
+        <div class="detail-header">
+            <div>
+                <h2 id="detailTitle">Поля</h2>
+                <small>Персонаж: <span id="currentCharLabel">Гость</span></small>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div class="balance">
+                    Монет: <span id="coinsLabel">100</span>
+                </div>
+                <div class="level-system">
+                    <div class="level-badge" onclick="showLevelInfo()" style="cursor: pointer;">
+                        ⭐ Ур. <span id="levelLabel">1</span>
+                    </div>
+                    <div class="level-progress">
+                        <div class="level-progress-fill" id="levelProgressFill" style="width: 0%;"></div>
+                        <div class="level-progress-text" id="levelProgressText">0/50</div>
+                    </div>
+                </div>
+                <div class="sound-controls-game">
+                    <button class="sound-btn" onclick="toggleMusic()" id="musicToggle">🎵</button>
+                    <button class="sound-btn" onclick="toggleSFX()" id="sfxToggle">🔊</button>
+                    <button class="sound-btn" onclick="saveGameProgress()" title="Сохранить прогресс">💾</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="detail-tabs">
+            <div class="detail-tab active" data-tab="farm">Поля</div>
+            <div class="detail-tab" data-tab="seeds">Семена</div>
+            <div class="detail-tab" data-tab="tools">Инструменты</div>
+            <div class="detail-tab" data-tab="equipment">Оборудование</div>
+            <div class="detail-tab" data-tab="minigames">Миниигры</div>
+        </div>
+
+        <div class="detail-content" id="detailContent"></div>
+        <button class="btn-back" onclick="goToMainMenu()">⬅️ В главное меню</button>
+    </div>
+</div>
+
+<div class="modal" id="minigameModal">
+    <div class="modal-content">
+        <h2 id="minigameTitle">Миниигры</h2>
+        <p id="minigameSubtitle">Выберите игру: Рыбалка, Поймай морковку или Кролик-змейка</p>
+        <div style="display:flex; gap:8px; margin-bottom:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="seed-buy-btn" onclick="startFishingGame()">🎣 Рыбалка</button>
+            <button class="seed-buy-btn" onclick="startCarrotGame()">🐰 Поймай морковку</button>
+            <button class="seed-buy-btn" onclick="startSnakeGame()">🐇 Кролик-змейка</button>
+        </div>
+        <div id="minigameArea" style="border-radius:12px; border:1px solid #e0f2e9; padding:10px; text-align:center; font-size:13px; color:#555; min-height:260px;">
+            Выберите миниигру выше, чтобы начать.
+        </div>
+        <div style="margin-top:15px; display:flex; gap:10px;">
+            <button type="button" class="btn btn-start" onclick="closeMinigame()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div class="rewards-panel" id="rewardsPanel">
+    <div class="reward-icon" id="rewardIcon">🎉</div>
+    <h2 class="reward-title" id="rewardTitle">Новый уровень!</h2>
+    <p class="reward-desc" id="rewardDesc">Вы достигли нового уровня!</p>
+    <div class="reward-bonus" id="rewardBonus">
+        Получено: <span id="rewardAmount">0</span> монет
+    </div>
+    <p style="font-size: 13px; color: #777; margin-bottom: 20px;" id="rewardNext">
+        До следующего уровня: <span id="nextLevelProgress">0</span> урожая
+    </p>
+    <button class="btn btn-start" onclick="closeRewardPanel()" style="padding: 12px 30px;">
+        Продолжить игру
+    </button>
+</div>
+</body>
+</html>

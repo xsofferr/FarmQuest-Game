@@ -552,6 +552,372 @@ tr.selected-row { background:#ffe0b2; }
     50% { opacity: 1; }
     100% { opacity: 0.7; }
 }
+@keyframes fadeIn { from { opacity:0; transform:translateY(15px);} to { opacity:1; transform:translateY(0);} }
+
+@media (max-width: 1100px) {
+    .game-layout {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .screen {
+        padding: 20px;
+        margin: 10px 0;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .map-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .farm-grid {
+        grid-template-columns: repeat(3, 60px) !important;
+        grid-auto-rows: 60px !important;
+    }
+    
+    #snakeCanvas {
+        width: 350px !important;
+        height: 350px !important;
+    }
+}
+
+@media (max-width: 767px) {
+    .menu h1 {
+        font-size: 36px;
+    }
+    
+    .menu p {
+        font-size: 14px;
+    }
+    
+    .btn {
+        padding: 12px;
+        font-size: 16px;
+        margin: 6px 0;
+    }
+    
+    .map-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .map-tile {
+        padding: 12px 8px;
+    }
+    
+    .map-tile-title {
+        font-size: 14px;
+    }
+    
+    .map-tile-desc {
+        font-size: 11px;
+    }
+    
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .detail-tabs {
+        overflow-x: auto;
+        padding-bottom: 5px;
+    }
+    
+    .detail-tab {
+        min-width: 100px;
+        font-size: 13px;
+        padding: 6px;
+    }
+    
+    .farm-with-selector {
+        flex-direction: column;
+    }
+    
+    .seed-selector {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .seed-option {
+        flex: 1;
+        min-width: 100px;
+        max-width: 150px;
+    }
+    
+    .farm-grid {
+        grid-template-columns: repeat(3, 55px) !important;
+        grid-auto-rows: 55px !important;
+        gap: 5px;
+    }
+    
+    .tile {
+        font-size: 20px;
+    }
+    
+    .seeds-shop,
+    .shop-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        padding: 20px 15px;
+        margin: 10px;
+    }
+    
+    .modal-btn-group {
+        flex-direction: column;
+    }
+    
+    .sound-controls {
+        padding: 10px;
+    }
+    
+    .volume-control {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .volume-control label {
+        min-width: auto;
+    }
+    
+    #snakeCanvas {
+        width: 300px !important;
+        height: 300px !important;
+    }
+    
+    .snake-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
+    }
+    
+    .level-system {
+        margin-left: 0;
+        margin-top: 10px;
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .level-progress {
+        width: 100px;
+    }
+    
+    .rewards-panel {
+        padding: 20px 15px;
+    }
+    
+    .reward-icon {
+        font-size: 50px;
+    }
+    
+    .reward-title {
+        font-size: 20px;
+    }
+    
+    .audio-hint {
+        font-size: 14px;
+        padding: 10px 15px;
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        transform: none;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu {
+        padding: 15px;
+    }
+    
+    .menu h1 {
+        font-size: 32px;
+    }
+    
+    .map-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .farm-grid {
+        grid-template-columns: repeat(3, 50px) !important;
+        grid-auto-rows: 50px !important;
+    }
+    
+    .tile {
+        font-size: 18px;
+    }
+    
+    .single-farm-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .single-farm-tools {
+        text-align: left;
+        font-size: 10px;
+    }
+    
+    .seed-option {
+        min-width: 90px;
+        padding: 8px;
+    }
+    
+    .seed-emoji {
+        font-size: 20px;
+    }
+    
+    #snakeCanvas {
+        width: 280px !important;
+        height: 280px !important;
+    }
+    
+    .snake-controls .snake-row {
+        gap: 5px;
+    }
+    
+    .snake-btn {
+        width: 45px;
+        height: 45px;
+        font-size: 18px;
+    }
+    
+    .sound-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+    }
+    
+    .btn-back {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    th, td {
+        padding: 8px 6px;
+        font-size: 13px;
+    }
+    
+    input {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .level-badge {
+        padding: 5px 10px;
+        font-size: 13px;
+    }
+    
+    .level-progress {
+        width: 80px;
+    }
+}
+
+@media (max-width: 360px) {
+    .farm-grid {
+        grid-template-columns: repeat(3, 45px) !important;
+        grid-auto-rows: 45px !important;
+    }
+    
+    .tile {
+        font-size: 16px;
+    }
+    
+    #snakeCanvas {
+        width: 260px !important;
+        height: 260px !important;
+    }
+    
+    .snake-btn {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .menu h1 {
+        font-size: 28px;
+    }
+    
+    .btn {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+    body {
+        align-items: flex-start;
+        padding-top: 5px;
+    }
+    
+    .screen {
+        padding: 15px;
+        margin: 5px 0;
+    }
+    
+    .menu h1 {
+        font-size: 28px;
+        margin-bottom: 5px;
+    }
+    
+    .menu p {
+        margin: 8px 0;
+        font-size: 13px;
+    }
+    
+    .btn {
+        padding: 10px;
+        margin: 4px 0;
+        font-size: 14px;
+    }
+    
+    .farm-grid {
+        grid-template-columns: repeat(3, 50px) !important;
+        grid-auto-rows: 50px !important;
+    }
+    
+    .detail-content {
+        min-height: 200px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    .tile:hover,
+    .map-tile:hover,
+    .btn:hover,
+    .sound-btn:hover,
+    .snake-btn:hover {
+        transform: none;
+    }
+    
+    .btn:active,
+    .sound-btn:active,
+    .snake-btn:active,
+    .tile:active,
+    .map-tile:active {
+        transform: scale(0.95);
+        transition: transform 0.1s;
+    }
+    
+    input,
+    select,
+    textarea {
+        font-size: 16px;
+    }
+}
 
 .seed-selector {
     display: flex;
