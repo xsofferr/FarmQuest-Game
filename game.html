@@ -8,6 +8,7 @@
 <script src="audio.js"></script>
 <script src="script.js"></script>
 <script src="snake-game.js"></script>
+<script src="tractor-game.js"></script>
 </head>
 <body>
 <div class="farm-container">
@@ -86,11 +87,12 @@
 <div class="modal" id="minigameModal">
     <div class="modal-content">
         <h2 id="minigameTitle">Миниигры</h2>
-        <p id="minigameSubtitle">Выберите игру: Рыбалка, Поймай морковку или Кролик-змейка</p>
+        <p id="minigameSubtitle">Выберите игру: Рыбалка, Поймай морковку, Кролик-змейка или Трактор</p>
         <div style="display:flex; gap:8px; margin-bottom:10px; justify-content:center; flex-wrap:wrap;">
             <button class="seed-buy-btn" onclick="startFishingGame()">🎣 Рыбалка</button>
             <button class="seed-buy-btn" onclick="startCarrotGame()">🐰 Поймай морковку</button>
             <button class="seed-buy-btn" onclick="startSnakeGame()">🐇 Кролик-змейка</button>
+            <button class="seed-buy-btn" onclick="startTractorGame()">🚜 Трактор</button>
         </div>
         <div id="minigameArea" style="border-radius:12px; border:1px solid #e0f2e9; padding:10px; text-align:center; font-size:13px; color:#555; min-height:260px;">
             Выберите миниигру выше, чтобы начать.
