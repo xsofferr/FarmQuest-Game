@@ -1,55 +1,15 @@
 let currentUser = null;
 let users = JSON.parse(localStorage.getItem('farmquest_users')) || [];
+let characterData = {
+    type: 'male',
+    hat: 'none',
+    shirt: 'green',
+    tool: 'none',
+    name: 'Фермер'
+};
 
 const currentUserLabel = document.getElementById('currentUserLabel');
 const logoutBtn = document.getElementById('logoutBtn');
-
-window.onload = function() {
-  const savedUser = localStorage.getItem('farmquest_currentUser');
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    updateUserUI();
-  }
-};
-
-function showRegisterModal() {
-  window.location.href = 'reg.html';
-}
-
-function showLoginModal() {
-  window.location.href = 'login.html';
-}
-
-function loginAsGuest() {
-  currentUser = { id: 'guest', username: 'Гость', isGuest: true };
-  localStorage.setItem('farmquest_currentUser', JSON.stringify(currentUser));
-  updateUserUI();
-}
-
-function updateUserUI() {
-  if (currentUser) {
-    currentUserLabel.textContent = currentUser.username;
-    logoutBtn.style.display = 'inline-block';
-  } else {
-    currentUserLabel.textContent = 'Не вошли';
-    logoutBtn.style.display = 'none';
-  }
-}
-
-function logout() {
-  currentUser = null;
-  localStorage.removeItem('farmquest_currentUser');
-  updateUserUI();
-}
-
-function startGame() {
-  alert('Скоро будет экран игры!');
-}
-
-function showScreen(screenId) {
-  alert(`Скоро будет экран: ${screenId}`);
-}
-
 const coinsLabel = document.getElementById('coinsLabel');
 
 let farmState = Array(9).fill('empty');
@@ -64,6 +24,7 @@ let equipment = {'tractor': false, 'irrigation': false, 'second_field': false};
 let growthMultiplier = 1;
 let harvestBonus = 0;
 let snakeGameInstance = null;
+let tractorGameInstance = null;
 
 let totalHarvested = 0;
 let playerLevel = 1;
@@ -121,6 +82,7 @@ window.onload = async function() {
     console.log('Страница загружена');
     
     initSoundControls();
+    loadCharacter();
     
     const savedUser = localStorage.getItem('farmquest_currentUser');
     if (savedUser) {
@@ -190,6 +152,175 @@ function initSoundControls() {
             }, 500);
         }
     });
+}
+
+function loadCharacter() {
+    const savedCharacter = localStorage.getItem('farmquest_character');
+    if (savedCharacter) {
+        characterData = JSON.parse(savedCharacter);
+    }
+    updateCharacterPreview();
+    updateCharacterMiniPreview();
+}
+
+function updateCharacterPreview() {
+    const display = document.getElementById('characterDisplay');
+    const nameDisplay = document.getElementById('characterNameDisplay');
+    const hatElement = document.getElementById('characterHat');
+    const shirtElement = document.getElementById('characterShirt');
+    const toolElement = document.getElementById('characterTool');
+    const nameInput = document.getElementById('characterNameInput');
+    
+    if (!display) return;
+    
+    const baseElement = display.querySelector('.character-base');
+    if (baseElement) {
+        baseElement.textContent = characterData.type === 'male' ? '👨' : '👩';
+    }
+    
+    const hats = {
+        'none': '',
+        'straw': '👒',
+        'cowboy': '🤠',
+        'tophat': '🎩',
+        'cap': '🧢'
+    };
+    
+    const shirts = {
+        'green': '🟢',
+        'blue': '🔵',
+        'red': '🔴',
+        'overall': '👖',
+        'fancy': '👔'
+    };
+    
+    const tools = {
+        'none': '',
+        'hoe': '⛏️',
+        'scythe': '🔪',
+        'watering': '🚰',
+        'pitchfork': '🍴'
+    };
+    
+    if (hatElement) hatElement.textContent = hats[characterData.hat] || '';
+    if (shirtElement) shirtElement.textContent = shirts[characterData.shirt] || '';
+    if (toolElement) toolElement.textContent = tools[characterData.tool] || '';
+    if (nameDisplay) nameDisplay.textContent = `Имя: ${characterData.name}`;
+    if (nameInput) nameInput.value = characterData.name;
+    
+    updateOptionButtons();
+}
+
+function updateCharacterMiniPreview() {
+    const miniDisplay = document.getElementById('characterDisplayMini');
+    if (!miniDisplay) return;
+    
+    const hats = {
+        'none': '',
+        'straw': '👒',
+        'cowboy': '🤠',
+        'tophat': '🎩',
+        'cap': '🧢'
+    };
+    
+    const shirts = {
+        'green': '🟢',
+        'blue': '🔵',
+        'red': '🔴',
+        'overall': '👖',
+        'fancy': '👔'
+    };
+    
+    const tools = {
+        'none': '',
+        'hoe': '⛏️',
+        'scythe': '🔪',
+        'watering': '🚰',
+        'pitchfork': '🍴'
+    };
+    
+    miniDisplay.innerHTML = `
+        <div class="character-base-mini">${characterData.type === 'male' ? '👨' : '👩'}</div>
+        ${characterData.hat !== 'none' ? `<div class="character-hat-mini">${hats[characterData.hat]}</div>` : ''}
+        ${characterData.shirt !== 'none' ? `<div class="character-shirt-mini">${shirts[characterData.shirt]}</div>` : ''}
+        ${characterData.tool !== 'none' ? `<div class="character-tool-mini">${tools[characterData.tool]}</div>` : ''}
+    `;
+}
+
+function updateOptionButtons() {
+    document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    const typeBtns = document.querySelectorAll(`.option-btn[onclick*="selectCharacterType('${characterData.type}')"]`);
+    typeBtns.forEach(btn => btn.classList.add('active'));
+    
+    const hatBtns = document.querySelectorAll(`.option-btn[onclick*="selectHat('${characterData.hat}')"]`);
+    hatBtns.forEach(btn => btn.classList.add('active'));
+    
+    const shirtBtns = document.querySelectorAll(`.option-btn[onclick*="selectShirt('${characterData.shirt}')"]`);
+    shirtBtns.forEach(btn => btn.classList.add('active'));
+    
+    const toolBtns = document.querySelectorAll(`.option-btn[onclick*="selectTool('${characterData.tool}')"]`);
+    toolBtns.forEach(btn => btn.classList.add('active'));
+}
+
+function openCharacterCreator() {
+    audioManager.playSound('click');
+    document.getElementById('characterModal').style.display = 'flex';
+    updateCharacterPreview();
+}
+
+function closeCharacterCreator() {
+    audioManager.playSound('click');
+    document.getElementById('characterModal').style.display = 'none';
+}
+
+function selectCharacterType(type) {
+    audioManager.playSound('click');
+    characterData.type = type;
+    updateCharacterPreview();
+}
+
+function selectHat(hat) {
+    audioManager.playSound('click');
+    characterData.hat = hat;
+    updateCharacterPreview();
+}
+
+function selectShirt(shirt) {
+    audioManager.playSound('click');
+    characterData.shirt = shirt;
+    updateCharacterPreview();
+}
+
+function selectTool(tool) {
+    audioManager.playSound('click');
+    characterData.tool = tool;
+    updateCharacterPreview();
+}
+
+function saveCharacter() {
+    const nameInput = document.getElementById('characterNameInput');
+    if (nameInput) {
+        const name = nameInput.value.trim();
+        if (name.length === 0) {
+            alert('Введите имя персонажа!');
+            return;
+        }
+        if (name.length > 20) {
+            alert('Имя не должно превышать 20 символов!');
+            return;
+        }
+        characterData.name = name;
+    }
+    
+    localStorage.setItem('farmquest_character', JSON.stringify(characterData));
+    updateCharacterMiniPreview();
+    
+    audioManager.playSound('buy');
+    showMessage('Персонаж сохранен!');
+    closeCharacterCreator();
 }
 
 function showRegisterModal() {
@@ -472,6 +603,12 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('currentCharLabel').textContent = currentUser.username;
     }
     
+    const savedCharacter = localStorage.getItem('farmquest_character');
+    if (savedCharacter) {
+        characterData = JSON.parse(savedCharacter);
+        document.getElementById('currentCharLabel').textContent = characterData.name;
+    }
+    
     loadProgressFromServer();
     
     updateLevelDisplay();
@@ -681,7 +818,7 @@ function updateContent(location) {
             <div class="minigames-placeholder">
                 Здесь доступны миниигры, за которые можно получить дополнительные монеты.
                 <div class="minigame-card">
-                    🎣 Рыбалка, 🐰 Поймай морковку и 🐇 Кролик-змейка<br>
+                    🎣 Рыбалка, 🐰 Поймай морковку, 🐇 Кролик-змейка и 🚜 Трактор<br>
                     <button class="seed-buy-btn" style="margin-top:6px; padding:6px 14px;" onclick="openMinigame()">
                         Открыть окно миниигр
                     </button>
@@ -997,6 +1134,60 @@ function startSnakeGame() {
             }
         );
         snakeGameInstance.start();
+    }
+}
+
+function startTractorGame() {
+    audioManager.playSound('click');
+    document.getElementById('minigameArea').innerHTML = `
+        <h3>🚜 Трактор</h3>
+        <p>Управляйте трактором и перепрыгивайте препятствия! ПРОБЕЛ - прыжок, P - пауза, R - перезапуск</p>
+        <canvas id="tractorCanvas" width="400" height="400"></canvas>
+        <div class="tractor-game-info">
+            <div>Преодолено препятствий: <span id="tractorScore">0</span></div>
+            <div>Приз: <span id="tractorPrize">0</span> монет</div>
+        </div>
+        <div class="tractor-controls">
+            <button class="tractor-btn" onclick="tractorJump()">ПРОБЕЛ - Прыжок</button>
+            <button class="tractor-btn" onclick="tractorPauseResume()">P - Пауза</button>
+            <button class="tractor-btn" onclick="tractorRestart()">R - Перезапуск</button>
+        </div>
+    `;
+    
+    if (typeof TractorGame !== 'undefined') {
+        tractorGameInstance = new TractorGame(
+            'tractorCanvas', 
+            'tractorScore', 
+            'tractorPrize', 
+            function(score, prize) {
+                if (prize > 0) {
+                    audioManager.playSound('harvest');
+                    coins += prize;
+                    document.getElementById('coinsLabel').textContent = coins;
+                    addHarvest(Math.floor(score / 2));
+                    showMessage(`Игра окончена! Вы получили ${prize} монет и ${Math.floor(score / 2)} к уровню!`);
+                }
+            }
+        );
+        tractorGameInstance.start();
+    }
+}
+
+function tractorJump() {
+    if (tractorGameInstance) {
+        tractorGameInstance.jump();
+    }
+}
+
+function tractorPauseResume() {
+    if (tractorGameInstance) {
+        tractorGameInstance.pauseResume();
+    }
+}
+
+function tractorRestart() {
+    if (tractorGameInstance) {
+        tractorGameInstance.restart();
     }
 }
 
