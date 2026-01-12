@@ -97,7 +97,7 @@ window.onload = async function() {
     console.log('Страница загружена');
     
     initSoundControls();
-    loadCharacter();
+    loadCharacter(
     loadAnimals();
     
     const savedUser = localStorage.getItem('farmquest_currentUser');
