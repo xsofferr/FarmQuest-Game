@@ -3,53 +3,6 @@ let users = JSON.parse(localStorage.getItem('farmquest_users')) || [];
 
 const currentUserLabel = document.getElementById('currentUserLabel');
 const logoutBtn = document.getElementById('logoutBtn');
-
-window.onload = function() {
-  const savedUser = localStorage.getItem('farmquest_currentUser');
-  if (savedUser) {
-    currentUser = JSON.parse(savedUser);
-    updateUserUI();
-  }
-};
-
-function showRegisterModal() {
-  window.location.href = 'reg.html';
-}
-
-function showLoginModal() {
-  window.location.href = 'login.html';
-}
-
-function loginAsGuest() {
-  currentUser = { id: 'guest', username: 'Гость', isGuest: true };
-  localStorage.setItem('farmquest_currentUser', JSON.stringify(currentUser));
-  updateUserUI();
-}
-
-function updateUserUI() {
-  if (currentUser) {
-    currentUserLabel.textContent = currentUser.username;
-    logoutBtn.style.display = 'inline-block';
-  } else {
-    currentUserLabel.textContent = 'Не вошли';
-    logoutBtn.style.display = 'none';
-  }
-}
-
-function logout() {
-  currentUser = null;
-  localStorage.removeItem('farmquest_currentUser');
-  updateUserUI();
-}
-
-function startGame() {
-  alert('Скоро будет экран игры!');
-}
-
-function showScreen(screenId) {
-  alert(`Скоро будет экран: ${screenId}`);
-}
-
 const coinsLabel = document.getElementById('coinsLabel');
 
 let farmState = Array(9).fill('empty');
@@ -64,6 +17,7 @@ let equipment = {'tractor': false, 'irrigation': false, 'second_field': false};
 let growthMultiplier = 1;
 let harvestBonus = 0;
 let snakeGameInstance = null;
+let tractorGameInstance = null;
 
 let totalHarvested = 0;
 let playerLevel = 1;
@@ -681,7 +635,7 @@ function updateContent(location) {
             <div class="minigames-placeholder">
                 Здесь доступны миниигры, за которые можно получить дополнительные монеты.
                 <div class="minigame-card">
-                    🎣 Рыбалка, 🐰 Поймай морковку и 🐇 Кролик-змейка<br>
+                    🎣 Рыбалка, 🐰 Поймай морковку, 🐇 Кролик-змейка и 🚜 Трактор<br>
                     <button class="seed-buy-btn" style="margin-top:6px; padding:6px 14px;" onclick="openMinigame()">
                         Открыть окно миниигр
                     </button>
@@ -997,6 +951,60 @@ function startSnakeGame() {
             }
         );
         snakeGameInstance.start();
+    }
+}
+
+function startTractorGame() {
+    audioManager.playSound('click');
+    document.getElementById('minigameArea').innerHTML = `
+        <h3>🚜 Трактор</h3>
+        <p>Управляйте трактором и перепрыгивайте препятствия! ПРОБЕЛ - прыжок, P - пауза, R - перезапуск</p>
+        <canvas id="tractorCanvas" width="400" height="400"></canvas>
+        <div class="tractor-game-info">
+            <div>Преодолено препятствий: <span id="tractorScore">0</span></div>
+            <div>Приз: <span id="tractorPrize">0</span> монет</div>
+        </div>
+        <div class="tractor-controls">
+            <button class="tractor-btn" onclick="tractorJump()">ПРОБЕЛ - Прыжок</button>
+            <button class="tractor-btn" onclick="tractorPauseResume()">P - Пауза</button>
+            <button class="tractor-btn" onclick="tractorRestart()">R - Перезапуск</button>
+        </div>
+    `;
+    
+    if (typeof TractorGame !== 'undefined') {
+        tractorGameInstance = new TractorGame(
+            'tractorCanvas', 
+            'tractorScore', 
+            'tractorPrize', 
+            function(score, prize) {
+                if (prize > 0) {
+                    audioManager.playSound('harvest');
+                    coins += prize;
+                    document.getElementById('coinsLabel').textContent = coins;
+                    addHarvest(Math.floor(score / 2));
+                    showMessage(`Игра окончена! Вы получили ${prize} монет и ${Math.floor(score / 2)} к уровню!`);
+                }
+            }
+        );
+        tractorGameInstance.start();
+    }
+}
+
+function tractorJump() {
+    if (tractorGameInstance) {
+        tractorGameInstance.jump();
+    }
+}
+
+function tractorPauseResume() {
+    if (tractorGameInstance) {
+        tractorGameInstance.pauseResume();
+    }
+}
+
+function tractorRestart() {
+    if (tractorGameInstance) {
+        tractorGameInstance.restart();
     }
 }
 
