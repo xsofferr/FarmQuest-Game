@@ -31,6 +31,21 @@ let playerLevel = 1;
 let levelProgress = 0;
 let nextLevelThreshold = 50;
 
+let animalProducts = {
+    milk: 0,
+    eggs: 0,
+    wool: 0
+};
+
+let animals = [
+    { id: 'chicken', name: 'Курица', emoji: '🐔', price: 50, owned: 0, max: 5, production: 'eggs', timeToProduce: 10000, lastProduction: 0, feedLevel: 100 },
+    { id: 'cow', name: 'Корова', emoji: '🐄', price: 150, owned: 0, max: 3, production: 'milk', timeToProduce: 15000, lastProduction: 0, feedLevel: 100 },
+    { id: 'sheep', name: 'Овца', emoji: '🐑', price: 100, owned: 0, max: 4, production: 'wool', timeToProduce: 20000, lastProduction: 0, feedLevel: 100 },
+    { id: 'pig', name: 'Свинья', emoji: '🐷', price: 120, owned: 0, max: 3, production: 'eggs', timeToProduce: 12000, lastProduction: 0, feedLevel: 100 },
+    { id: 'goat', name: 'Коза', emoji: '🐐', price: 80, owned: 0, max: 4, production: 'milk', timeToProduce: 13000, lastProduction: 0, feedLevel: 100 },
+    { id: 'rabbit', name: 'Кролик', emoji: '🐇', price: 40, owned: 0, max: 6, production: 'wool', timeToProduce: 8000, lastProduction: 0, feedLevel: 100 }
+];
+
 const SEEDS = {
     'wheat': { name: 'Пшеница', emoji: '🌾', price: 10, reward: 3, growTime: 5000 },
     'carrot': { name: 'Морковь', emoji: '🥕', price: 15, reward: 5, growTime: 8000 },
@@ -82,7 +97,8 @@ window.onload = async function() {
     console.log('Страница загружена');
     
     initSoundControls();
-    loadCharacter();
+    loadCharacter(
+    loadAnimals();
     
     const savedUser = localStorage.getItem('farmquest_currentUser');
     if (savedUser) {
@@ -96,6 +112,8 @@ window.onload = async function() {
             audioManager.initAudio();
         }
     }, 1000);
+    
+    startAnimalProduction();
 };
 
 async function loadCoinsFromDB() {
@@ -161,6 +179,26 @@ function loadCharacter() {
     }
     updateCharacterPreview();
     updateCharacterMiniPreview();
+}
+
+function loadAnimals() {
+    const savedAnimals = localStorage.getItem('farmquest_animals');
+    if (savedAnimals) {
+        animals = JSON.parse(savedAnimals);
+    }
+    
+    const savedProducts = localStorage.getItem('farmquest_animal_products');
+    if (savedProducts) {
+        animalProducts = JSON.parse(savedProducts);
+    }
+    
+    updateAnimalProductsDisplay();
+}
+
+function updateAnimalProductsDisplay() {
+    document.getElementById('milkLabel').textContent = animalProducts.milk;
+    document.getElementById('eggsLabel').textContent = animalProducts.eggs;
+    document.getElementById('woolLabel').textContent = animalProducts.wool;
 }
 
 function updateCharacterPreview() {
@@ -569,7 +607,9 @@ function saveGameProgress() {
         tools,
         equipment,
         growthMultiplier,
-        harvestBonus
+        harvestBonus,
+        animals,
+        animalProducts
     };
     localStorage.setItem('farmquest_game_progress', JSON.stringify(progress));
 }
@@ -588,6 +628,9 @@ function loadGameProgress() {
         equipment = progress.equipment || {'tractor': false, 'irrigation': false, 'second_field': false};
         growthMultiplier = progress.growthMultiplier || 1;
         harvestBonus = progress.harvestBonus || 0;
+        
+        if (progress.animals) animals = progress.animals;
+        if (progress.animalProducts) animalProducts = progress.animalProducts;
     }
 }
 
@@ -613,6 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     updateLevelDisplay();
     selectLocation('farm');
+    updateAnimalProductsDisplay();
     
     startAutoSave();
     
@@ -653,7 +697,7 @@ function selectLocation(location) {
     });
     const titles = {
         'farm': 'Поля', 'seeds': 'Магазин семян', 'tools': 'Инструменты',
-        'equipment': 'Оборудование', 'minigames': 'Миниигры'
+        'equipment': 'Оборудование', 'animals': 'Животные', 'minigames': 'Миниигры'
     };
     document.getElementById('detailTitle').textContent = titles[location] || 'Поля';
     updateContent(location);
@@ -710,6 +754,11 @@ function updateContent(location) {
                         <div class="farm-grid" id="farmGrid2"></div>
                     </div>
                     ` : ''}
+                    <div style="text-align:center; margin-top:15px;">
+                        <button class="seed-buy-btn" onclick="openSellProductsModal()" style="padding:10px 20px;">
+                            🛒 Продать продукцию животных
+                        </button>
+                    </div>
                     <p style="font-size:12px; color:#777; text-align:center; margin-top:10px;">
                         Нажимайте на клетки: пусто → вспахано → посеяно → (растёт) → готово → пусто.
                     </p>
@@ -809,6 +858,71 @@ function updateContent(location) {
                             </div>
                         </div>
                     `).join('')}
+                </div>
+            </div>
+        `;
+        
+    } else if (location === 'animals') {
+        content.innerHTML = `
+            <div>
+                <p style="font-size:13px; color:#777; margin-bottom:6px;">
+                    Покупайте животных, ухаживайте за ними и собирайте продукцию!
+                </p>
+                <div style="margin-bottom:10px; text-align:center;">
+                    <button class="seed-buy-btn" onclick="openSellProductsModal()" style="padding:8px 16px;">
+                        🛒 Продать продукцию животных
+                    </button>
+                </div>
+                <div class="animals-grid" id="animalsGrid">
+                    ${animals.map(animal => {
+                        const productionEmoji = animal.production === 'milk' ? '🥛' : animal.production === 'eggs' ? '🥚' : '🧶';
+                        const productionName = animal.production === 'milk' ? 'молоко' : animal.production === 'eggs' ? 'яйца' : 'шерсть';
+                        const progressPercent = animal.feedLevel;
+                        const timeSinceLast = Date.now() - animal.lastProduction;
+                        const productionReady = timeSinceLast >= animal.timeToProduce && animal.feedLevel > 0;
+                        
+                        return `
+                            <div class="animal-item">
+                                <div class="animal-header">
+                                    <span class="emoji">${animal.emoji}</span>
+                                    <div class="animal-name">${animal.name}</div>
+                                </div>
+                                <div class="animal-desc">Производит: ${productionEmoji} ${productionName}</div>
+                                <div class="animal-stats">
+                                    <div>В наличии: ${animal.owned}/${animal.max}</div>
+                                    <div>Корм: ${animal.feedLevel}%</div>
+                                </div>
+                                <div class="animal-progress">
+                                    <div class="animal-progress-fill" style="width: ${progressPercent}%;"></div>
+                                </div>
+                                <div class="animal-footer">
+                                    <div class="animal-price">${animal.price} монет</div>
+                                    <button class="animal-buy-btn" ${animal.owned >= animal.max || coins < animal.price ? 'disabled' : ''} onclick="buyAnimal('${animal.id}')">
+                                        Купить
+                                    </button>
+                                    ${animal.owned > 0 ? `
+                                        <button class="animal-feed-btn" onclick="feedAnimal('${animal.id}')" ${coins < 5 ? 'disabled' : ''}>
+                                            Кормить (5 монет)
+                                        </button>
+                                        <button class="animal-collect-btn" onclick="collectAnimalProduct('${animal.id}')" ${!productionReady ? 'disabled' : ''}>
+                                            Собрать
+                                        </button>
+                                        <button class="animal-sell-btn" onclick="sellAnimal('${animal.id}')" ${animal.owned <= 0 ? 'disabled' : ''}>
+                                            Продать
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="margin-top:15px; padding:10px; background:#f0f9f0; border-radius:10px; font-size:12px; color:#555;">
+                    <strong>Как это работает:</strong><br>
+                    1. Купите животных (максимум зависит от вида)<br>
+                    2. Кормите животных за 5 монет (увеличивает уровень корма до 100%)<br>
+                    3. Ждите, пока животные произведут продукцию (молоко, яйца или шерсть)<br>
+                    4. Собирайте продукцию и продавайте её за монеты<br>
+                    5. Можно продавать животных обратно по полцены
                 </div>
             </div>
         `;
@@ -984,6 +1098,195 @@ function buyEquipment(itemId) {
         audioManager.playSound('error');
         showMessage('Недостаточно монет!');
     }
+}
+
+function buyAnimal(animalId) {
+    const animal = animals.find(a => a.id === animalId);
+    if (!animal) return;
+    
+    if (animal.owned >= animal.max) {
+        audioManager.playSound('error');
+        showMessage(`Достигнут максимум ${animal.max} ${animal.name.toLowerCase()}!`);
+        return;
+    }
+    
+    if (coins >= animal.price) {
+        audioManager.playSound('buy');
+        coins -= animal.price;
+        animal.owned++;
+        animal.lastProduction = Date.now();
+        document.getElementById('coinsLabel').textContent = coins;
+        showMessage(`Куплена ${animal.name}!`);
+        updateContent('animals');
+        saveGameProgress();
+    } else {
+        audioManager.playSound('error');
+        showMessage('Недостаточно монет!');
+    }
+}
+
+function feedAnimal(animalId) {
+    const animal = animals.find(a => a.id === animalId);
+    if (!animal) return;
+    
+    if (coins < 5) {
+        audioManager.playSound('error');
+        showMessage('Недостаточно монет для кормления!');
+        return;
+    }
+    
+    if (animal.feedLevel >= 100) {
+        audioManager.playSound('error');
+        showMessage(`${animal.name} уже накормлена!`);
+        return;
+    }
+    
+    audioManager.playSound('buy');
+    coins -= 5;
+    animal.feedLevel = Math.min(100, animal.feedLevel + 50);
+    document.getElementById('coinsLabel').textContent = coins;
+    showMessage(`${animal.name} покормлена! Уровень корма: ${animal.feedLevel}%`);
+    updateContent('animals');
+    saveGameProgress();
+}
+
+function collectAnimalProduct(animalId) {
+    const animal = animals.find(a => a.id === animalId);
+    if (!animal) return;
+    
+    if (animal.owned === 0 || animal.feedLevel <= 0) {
+        audioManager.playSound('error');
+        showMessage(`${animal.name} не готова к сбору продукции!`);
+        return;
+    }
+    
+    const timeSinceLast = Date.now() - animal.lastProduction;
+    if (timeSinceLast < animal.timeToProduce) {
+        audioManager.playSound('error');
+        const timeLeft = Math.ceil((animal.timeToProduce - timeSinceLast) / 1000);
+        showMessage(`${animal.name} ещё не готова! Осталось: ${timeLeft} сек.`);
+        return;
+    }
+    
+    audioManager.playSound('harvest');
+    
+    let productAmount = 0;
+    switch(animal.production) {
+        case 'milk':
+            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100));
+            animalProducts.milk += productAmount;
+            break;
+        case 'eggs':
+            productAmount = Math.floor(animal.owned * 2 * (animal.feedLevel / 100));
+            animalProducts.eggs += productAmount;
+            break;
+        case 'wool':
+            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100));
+            animalProducts.wool += productAmount;
+            break;
+    }
+    
+    animal.lastProduction = Date.now();
+    animal.feedLevel = Math.max(0, animal.feedLevel - 30);
+    
+    updateAnimalProductsDisplay();
+    showMessage(`Собрано ${productAmount} ${animal.production === 'milk' ? 'молока' : animal.production === 'eggs' ? 'яиц' : 'шерсти'}!`);
+    updateContent('animals');
+    saveGameProgress();
+}
+
+function sellAnimal(animalId) {
+    const animal = animals.find(a => a.id === animalId);
+    if (!animal || animal.owned <= 0) return;
+    
+    const sellPrice = Math.floor(animal.price * 0.7);
+    
+    audioManager.playSound('buy');
+    coins += sellPrice;
+    animal.owned--;
+    document.getElementById('coinsLabel').textContent = coins;
+    showMessage(`Продана ${animal.name} за ${sellPrice} монет!`);
+    updateContent('animals');
+    saveGameProgress();
+}
+
+function openSellProductsModal() {
+    audioManager.playSound('click');
+    document.getElementById('milkCount').textContent = animalProducts.milk;
+    document.getElementById('eggCount').textContent = animalProducts.eggs;
+    document.getElementById('woolCount').textContent = animalProducts.wool;
+    document.getElementById('sellProductsModal').style.display = 'flex';
+}
+
+function closeSellProductsModal() {
+    audioManager.playSound('click');
+    document.getElementById('sellProductsModal').style.display = 'none';
+}
+
+function sellProduct(productType, amount) {
+    if (animalProducts[productType] <= 0) {
+        audioManager.playSound('error');
+        showMessage(`Нет ${productType === 'milk' ? 'молока' : productType === 'eggs' ? 'яиц' : 'шерсти'} для продажи!`);
+        return;
+    }
+    
+    let sellAmount = amount;
+    if (amount === 'all') {
+        sellAmount = animalProducts[productType];
+    } else if (animalProducts[productType] < amount) {
+        audioManager.playSound('error');
+        showMessage(`Недостаточно ${productType === 'milk' ? 'молока' : productType === 'eggs' ? 'яиц' : 'шерсти'}!`);
+        return;
+    }
+    
+    const prices = {
+        'milk': 3,
+        'eggs': 2,
+        'wool': 5
+    };
+    
+    const productNames = {
+        'milk': 'молока',
+        'eggs': 'яиц',
+        'wool': 'шерсти'
+    };
+    
+    const totalPrice = sellAmount * prices[productType];
+    
+    audioManager.playSound('coin');
+    coins += totalPrice;
+    animalProducts[productType] -= sellAmount;
+    
+    document.getElementById('coinsLabel').textContent = coins;
+    updateAnimalProductsDisplay();
+    document.getElementById(`${productType}Count`).textContent = animalProducts[productType];
+    
+    showMessage(`Продано ${sellAmount} ${productNames[productType]} за ${totalPrice} монет!`);
+    saveGameProgress();
+}
+
+function startAnimalProduction() {
+    setInterval(() => {
+        let updated = false;
+        
+        animals.forEach(animal => {
+            if (animal.owned > 0 && animal.feedLevel > 0) {
+                const timeSinceLast = Date.now() - animal.lastProduction;
+                if (timeSinceLast >= animal.timeToProduce) {
+                    animal.feedLevel = Math.max(0, animal.feedLevel - 5);
+                    updated = true;
+                    
+                    if (currentLocation === 'animals') {
+                        updateContent('animals');
+                    }
+                }
+            }
+        });
+        
+        if (updated) {
+            saveGameProgress();
+        }
+    }, 1000);
 }
 
 function openMinigame() {
@@ -1272,6 +1575,8 @@ async function saveProgressToServer() {
         playerLevel,
         levelProgress,
         nextLevelThreshold,
+        animals,
+        animalProducts,
         lastSave: Date.now()
     };
     
@@ -1328,8 +1633,12 @@ async function loadProgressFromServer() {
             levelProgress = progress.levelProgress || 0;
             nextLevelThreshold = progress.nextLevelThreshold || 50;
             
+            if (progress.animals) animals = progress.animals;
+            if (progress.animalProducts) animalProducts = progress.animalProducts;
+            
             document.getElementById('coinsLabel').textContent = coins;
             updateLevelDisplay();
+            updateAnimalProductsDisplay();
             
             restoreGrowthTimers();
             
@@ -1369,30 +1678,6 @@ function restoreGrowthTimers() {
                 farmState[i] = 'ready';
             }
         }
-    }
-}
-
-function saveGameProgress() {
-    const progress = {
-        totalHarvested,
-        playerLevel,
-        levelProgress,
-        nextLevelThreshold,
-        coins,
-        seedsInventory,
-        tools,
-        equipment,
-        growthMultiplier,
-        harvestBonus,
-        farmState,
-        plantedTime,
-        plantedSeed,
-        selectedSeed
-    };
-    localStorage.setItem('farmquest_game_progress', JSON.stringify(progress));
-    
-    if (currentUser && !currentUser.isGuest) {
-        setTimeout(() => saveProgressToServer(), 100);
     }
 }
 
