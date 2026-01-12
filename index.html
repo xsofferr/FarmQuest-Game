@@ -1,32 +1,150 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>FarmQuest</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FarmQuest - Главная</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="audio.js"></script>
+    <script src="script.js"></script>
 </head>
-
 <body>
-
-  <div class="screen menu" id="menuScreen">
-    <h1>Farm<span>Quest</span></h1>
-    <p>Развивай ферму и управляй персонажами</p>
-
-    <div class="current-user">
-      Аккаунт: <span id="currentUserLabel">Не вошли</span>
+    <div class="screen" id="mainMenu">
+        <div class="menu">
+            <h1><span>Farm</span>Quest</h1>
+            <div class="current-user">
+                Текущий пользователь: <span id="currentUserLabel">Не вошли</span>
+                <button class="btn btn-logout" id="logoutBtn" onclick="logout()" style="display:none;">Выйти</button>
+            </div>
+            <p>Добро пожаловать в увлекательную фермерскую игру!</p>
+            
+            <div class="character-preview-mini" onclick="openCharacterCreator()" style="cursor:pointer; margin:15px 0; padding:10px; background:#f0f9f0; border-radius:12px; border:2px solid #4b8b3b;">
+                <div style="text-align:center; color:#4b8b3b; font-weight:600; margin-bottom:8px;">Ваш персонаж:</div>
+                <div class="character-display-mini" id="characterDisplayMini" style="display:flex; align-items:center; justify-content:center; height:80px;">
+                    <div class="character-base-mini">👨</div>
+                </div>
+                <div style="text-align:center; font-size:12px; color:#777;">Нажмите для изменения</div>
+            </div>
+            
+            <div class="sound-controls" id="soundControls">
+                <h3>Настройки звука</h3>
+                <div class="volume-control">
+                    <label>Музыка:</label>
+                    <input type="range" min="0" max="100" value="50" class="volume-slider" id="musicVolume">
+                    <span id="musicVolumeValue">50%</span>
+                </div>
+                <div class="volume-control">
+                    <label>Эффекты:</label>
+                    <input type="range" min="0" max="100" value="70" class="volume-slider" id="sfxVolume">
+                    <span id="sfxVolumeValue">70%</span>
+                </div>
+            </div>
+            
+            <button class="btn btn-start" onclick="startGame()">Начать игру</button>
+            <button class="btn btn-secondary" onclick="showRegisterModal()">Регистрация</button>
+            <button class="btn btn-secondary" onclick="showLoginModal()">Вход</button>
+            <button class="btn btn-secondary" onclick="loginAsGuest()">Играть как гость</button>
+        </div>
     </div>
 
-    <button class="btn btn-start" onclick="startGame()">🌱 Войти на карту</button>
-    <button class="btn btn-secondary" onclick="showScreen('dbScreen')">👤 Управление персонажами</button>
-    <button class="btn btn-secondary" onclick="loginAsGuest()">🙋 Войти как гость</button>
-    <button class="btn btn-secondary" onclick="showLoginModal()">🔑 Войти в аккаунт</button>
-    <button class="btn btn-secondary" onclick="showRegisterModal()">📝 Регистрация</button>
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <h2>Регистрация</h2>
+            <form id="registerForm">
+                <input type="text" placeholder="Логин" required>
+                <input type="password" placeholder="Пароль" required>
+                <input type="password" placeholder="Повторите пароль" required>
+            </form>
+            <div class="error-message" id="registerError"></div>
+            <div class="modal-btn-group">
+                <button class="btn btn-start" onclick="register()">Зарегистрироваться</button>
+                <button class="btn btn-secondary" onclick="hideModal('registerModal')">Отмена</button>
+            </div>
+        </div>
+    </div>
 
-    <button class="btn-logout" onclick="logout()" id="logoutBtn" style="display:none;">Выйти из аккаунта</button>
-  </div>
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h2>Вход</h2>
+            <form id="loginForm">
+                <input type="text" placeholder="Логин" required>
+                <input type="password" placeholder="Пароль" required>
+            </form>
+            <div class="error-message" id="loginError"></div>
+            <div class="modal-btn-group">
+                <button class="btn btn-start" onclick="login()">Войти</button>
+                <button class="btn btn-secondary" onclick="hideModal('loginModal')">Отмена</button>
+            </div>
+        </div>
+    </div>
 
-  <script src="script.js"></script>
+    <div class="modal" id="characterModal">
+        <div class="modal-content">
+            <h2>Создание персонажа</h2>
+            <div class="character-creator">
+                <div class="character-preview">
+                    <div class="character-display" id="characterDisplay">
+                        <div class="character-base">👨</div>
+                        <div class="character-hat" id="characterHat"></div>
+                        <div class="character-shirt" id="characterShirt"></div>
+                        <div class="character-tool" id="characterTool"></div>
+                    </div>
+                    <div class="character-name-display" id="characterNameDisplay">Имя: Фермер</div>
+                </div>
+                <div class="character-options">
+                    <div class="option-group">
+                        <h4>Тип персонажа</h4>
+                        <div class="option-buttons">
+                            <button class="option-btn active" onclick="selectCharacterType('male')">👨 Мужчина</button>
+                            <button class="option-btn" onclick="selectCharacterType('female')">👩 Женщина</button>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <h4>Шляпа</h4>
+                        <div class="option-buttons">
+                            <button class="option-btn active" onclick="selectHat('none')">Без шляпы</button>
+                            <button class="option-btn" onclick="selectHat('straw')">👒 Соломенная</button>
+                            <button class="option-btn" onclick="selectHat('cowboy')">🤠 Ковбойская</button>
+                            <button class="option-btn" onclick="selectHat('tophat')">🎩 Цилиндр</button>
+                            <button class="option-btn" onclick="selectHat('cap')">🧢 Кепка</button>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <h4>Одежда</h4>
+                        <div class="option-buttons">
+                            <button class="option-btn active" onclick="selectShirt('green')">🟢 Зелёная рубашка</button>
+                            <button class="option-btn" onclick="selectShirt('blue')">🔵 Синий комбинезон</button>
+                            <button class="option-btn" onclick="selectShirt('red')">🔴 Красная футболка</button>
+                            <button class="option-btn" onclick="selectShirt('overall')">👖 Джинсовый комбинезон</button>
+                            <button class="option-btn" onclick="selectShirt('fancy')">👔 Костюм</button>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <h4>Инструмент</h4>
+                        <div class="option-buttons">
+                            <button class="option-btn active" onclick="selectTool('none')">Без инструмента</button>
+                            <button class="option-btn" onclick="selectTool('hoe')">⛏️ Мотыга</button>
+                            <button class="option-btn" onclick="selectTool('scythe')">🔪 Коса</button>
+                            <button class="option-btn" onclick="selectTool('watering')">🚰 Лейка</button>
+                            <button class="option-btn" onclick="selectTool('pitchfork')">🍴 Вилы</button>
+                        </div>
+                    </div>
+                    <div class="option-group">
+                        <h4>Имя персонажа</h4>
+                        <input type="text" id="characterNameInput" placeholder="Введите имя персонажа" value="Фермер" maxlength="20">
+                        <div style="font-size:12px; color:#777; margin-top:5px;">Максимум 20 символов</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-btn-group">
+                <button class="btn btn-start" onclick="saveCharacter()">Сохранить персонажа</button>
+                <button class="btn btn-secondary" onclick="closeCharacterCreator()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="audio-hint" id="audioHint">
+        🔇 Для включения звука нажмите на любую кнопку
+    </div>
 </body>
 </html>
