@@ -30,6 +30,7 @@ let totalHarvested = 0;
 let playerLevel = 1;
 let levelProgress = 0;
 let nextLevelThreshold = 50;
+let skillPoints = 0;
 
 let animalProducts = {
     milk: 0,
@@ -44,6 +45,15 @@ let animals = [
     { id: 'pig', name: 'Свинья', emoji: '🐷', price: 120, owned: 0, max: 3, production: 'eggs', timeToProduce: 12000, lastProduction: 0, feedLevel: 100 },
     { id: 'goat', name: 'Коза', emoji: '🐐', price: 80, owned: 0, max: 4, production: 'milk', timeToProduce: 13000, lastProduction: 0, feedLevel: 100 },
     { id: 'rabbit', name: 'Кролик', emoji: '🐇', price: 40, owned: 0, max: 6, production: 'wool', timeToProduce: 8000, lastProduction: 0, feedLevel: 100 }
+];
+
+let skills = [
+    { id: 'harvesting', name: 'Сбор урожая', emoji: '🌾', level: 1, maxLevel: 10, desc: 'Увеличивает монеты за сбор урожая', effect: 0, nextCost: 5 },
+    { id: 'growth', name: 'Скорость роста', emoji: '⚡', level: 1, maxLevel: 10, desc: 'Ускоряет рост растений', effect: 0, nextCost: 5 },
+    { id: 'animal_care', name: 'Уход за животными', emoji: '🐄', level: 1, maxLevel: 10, desc: 'Животные производят больше продукции', effect: 0, nextCost: 5 },
+    { id: 'animal_speed', name: 'Скорость животных', emoji: '🐇', level: 1, maxLevel: 10, desc: 'Животные производят быстрее', effect: 0, nextCost: 5 },
+    { id: 'minigame_bonus', name: 'Бонус миниигр', emoji: '🎮', level: 1, maxLevel: 10, desc: 'Увеличивает награды в минииграх', effect: 0, nextCost: 5 },
+    { id: 'discount', name: 'Скидки', emoji: '💰', level: 1, maxLevel: 10, desc: 'Снижает цены в магазинах', effect: 0, nextCost: 5 }
 ];
 
 const SEEDS = {
@@ -97,8 +107,9 @@ window.onload = async function() {
     console.log('Страница загружена');
     
     initSoundControls();
-    loadCharacter(
+    loadCharacter();
     loadAnimals();
+    loadSkills();
     
     const savedUser = localStorage.getItem('farmquest_currentUser');
     if (savedUser) {
@@ -114,6 +125,7 @@ window.onload = async function() {
     }, 1000);
     
     startAnimalProduction();
+    updateSkillPointsDisplay();
 };
 
 async function loadCoinsFromDB() {
@@ -195,10 +207,22 @@ function loadAnimals() {
     updateAnimalProductsDisplay();
 }
 
+function loadSkills() {
+    const savedSkills = localStorage.getItem('farmquest_skills');
+    if (savedSkills) {
+        skills = JSON.parse(savedSkills);
+    }
+    applySkillEffects();
+}
+
 function updateAnimalProductsDisplay() {
     document.getElementById('milkLabel').textContent = animalProducts.milk;
     document.getElementById('eggsLabel').textContent = animalProducts.eggs;
     document.getElementById('woolLabel').textContent = animalProducts.wool;
+}
+
+function updateSkillPointsDisplay() {
+    document.getElementById('skillPointsLabel').textContent = skillPoints;
 }
 
 function updateCharacterPreview() {
@@ -487,6 +511,9 @@ function levelUp() {
         document.getElementById('coinsLabel').textContent = coins;
     }
     
+    skillPoints += 2;
+    updateSkillPointsDisplay();
+    
     applyLevelBonus(playerLevel, reward.bonus);
     
     showRewardPanel(playerLevel, reward);
@@ -554,17 +581,17 @@ function getLevelIcon(level) {
 function getLevelDescription(level) {
     const descriptions = {
         1: "Добро пожаловать в FarmQuest!",
-        2: "Вы становитесь опытнее!",
-        3: "Ваши навыки растут!",
-        4: "Вы - уверенный фермер!",
-        5: "Мастер земледелия!",
-        6: "Эксперт по урожаю!",
-        7: "Великий фермер!",
-        8: "Легенда фермерства!",
-        9: "Повелитель урожая!",
-        10: "ВЕЛИЧАЙШИЙ ФЕРМЕР ВСЕХ ВРЕМЁН!"
+        2: "Вы становитесь опытнее! Получено 2 очка навыков!",
+        3: "Ваши навыки растут! Получено 2 очка навыков!",
+        4: "Вы - уверенный фермер! Получено 2 очка навыков!",
+        5: "Мастер земледелия! Получено 2 очка навыков!",
+        6: "Эксперт по урожаю! Получено 2 очка навыков!",
+        7: "Великий фермер! Получено 2 очка навыков!",
+        8: "Легенда фермерства! Получено 2 очка навыков!",
+        9: "Повелитель урожая! Получено 2 очка навыков!",
+        10: "ВЕЛИЧАЙШИЙ ФЕРМЕР ВСЕХ ВРЕМЁН! Получено 2 очка навыков!"
     };
-    return descriptions[level] || "Новая вершина достигнута!";
+    return descriptions[level] || "Новая вершина достигнута! Получено 2 очка навыков!";
 }
 
 function closeRewardPanel() {
@@ -579,7 +606,8 @@ function showLevelInfo() {
     let info = `📊 Статистика уровня:\n`;
     info += `Текущий уровень: ${playerLevel}\n`;
     info += `Собрано всего: ${totalHarvested} урожая\n`;
-    info += `Прогресс: ${levelProgress}/${nextLevelThreshold}\n\n`;
+    info += `Прогресс: ${levelProgress}/${nextLevelThreshold}\n`;
+    info += `Очки навыков: ${skillPoints}\n\n`;
     info += `Бонусы уровня ${playerLevel}:\n`;
     info += `+${harvestBonus} монет за сбор\n`;
     info += `Скорость роста: ${Math.round((1/growthMultiplier)*100)}%\n\n`;
@@ -609,7 +637,9 @@ function saveGameProgress() {
         growthMultiplier,
         harvestBonus,
         animals,
-        animalProducts
+        animalProducts,
+        skills,
+        skillPoints
     };
     localStorage.setItem('farmquest_game_progress', JSON.stringify(progress));
 }
@@ -631,6 +661,8 @@ function loadGameProgress() {
         
         if (progress.animals) animals = progress.animals;
         if (progress.animalProducts) animalProducts = progress.animalProducts;
+        if (progress.skills) skills = progress.skills;
+        skillPoints = progress.skillPoints || 0;
     }
 }
 
@@ -657,6 +689,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateLevelDisplay();
     selectLocation('farm');
     updateAnimalProductsDisplay();
+    updateSkillPointsDisplay();
     
     startAutoSave();
     
@@ -697,7 +730,7 @@ function selectLocation(location) {
     });
     const titles = {
         'farm': 'Поля', 'seeds': 'Магазин семян', 'tools': 'Инструменты',
-        'equipment': 'Оборудование', 'animals': 'Животные', 'minigames': 'Миниигры'
+        'equipment': 'Оборудование', 'animals': 'Животные', 'skills': 'Навыки', 'minigames': 'Миниигры'
     };
     document.getElementById('detailTitle').textContent = titles[location] || 'Поля';
     updateContent(location);
@@ -772,101 +805,120 @@ function updateContent(location) {
         }
         
     } else if (location === 'seeds') {
+        const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
         content.innerHTML = `
             <div>
                 <p style="font-size:13px; color:#777; margin-bottom:6px;">
                     Покупка пакетов семян. За каждую покупку вы получаете 5 штук.
+                    ${getSkillEffect('discount') > 0 ? `Скидка: ${getSkillEffect('discount')}%` : ''}
                 </p>
                 <div class="seeds-shop" id="seedsShop">
-                    ${Object.entries(SEEDS).map(([id, seed]) => `
-                        <div class="seed-item">
-                            <div class="seed-header">
-                                <span class="emoji">${seed.emoji}</span>
-                                <div class="seed-name">${seed.name}</div>
-                            </div>
-                            <div class="seed-desc">Растёт ${seed.growTime/1000} сек, даёт ${seed.reward} монет</div>
-                            <div class="seed-footer">
-                                <div>
-                                    <div class="seed-price">${seed.price} монет</div>
-                                    <div class="seed-owned ${seedsInventory[id] > 0 ? '' : 'none'}">
-                                        На складе: ${seedsInventory[id]} шт.
-                                    </div>
+                    ${Object.entries(SEEDS).map(([id, seed]) => {
+                        const price = Math.max(1, Math.floor(seed.price * discountMultiplier));
+                        return `
+                            <div class="seed-item">
+                                <div class="seed-header">
+                                    <span class="emoji">${seed.emoji}</span>
+                                    <div class="seed-name">${seed.name}</div>
                                 </div>
-                                <button class="seed-buy-btn" onclick="buySeed('${id}')">Купить (5 шт.)</button>
+                                <div class="seed-desc">Растёт ${seed.growTime/1000} сек, даёт ${seed.reward} монет</div>
+                                <div class="seed-footer">
+                                    <div>
+                                        <div class="seed-price">${price} монет</div>
+                                        <div class="seed-owned ${seedsInventory[id] > 0 ? '' : 'none'}">
+                                            На складе: ${seedsInventory[id]} шт.
+                                        </div>
+                                    </div>
+                                    <button class="seed-buy-btn" onclick="buySeed('${id}')">Купить (5 шт.)</button>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
         
     } else if (location === 'tools') {
+        const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
         content.innerHTML = `
             <div>
                 <p style="font-size:13px; color:#777; margin-bottom:6px;">
                     Инструменты увеличивают монеты за каждый сбор урожая.
+                    ${getSkillEffect('discount') > 0 ? `Скидка: ${getSkillEffect('discount')}%` : ''}
                 </p>
                 <div class="shop-list" id="toolsShop">
-                    ${TOOLS_SHOP.map(tool => `
-                        <div class="shop-item">
-                            <div class="shop-header">
-                                <span class="emoji">${tool.emoji}</span>
-                                <div class="shop-name">${tool.name}</div>
-                            </div>
-                            <div class="shop-desc">${tool.desc}</div>
-                            <div class="shop-footer">
-                                <div>
-                                    <div class="shop-price">${tool.price} монет</div>
-                                    <div class="shop-owned ${tools[tool.id] ? '' : 'none'}">
-                                        ${tools[tool.id] ? 'Куплено' : 'Не куплено'}
-                                    </div>
+                    ${TOOLS_SHOP.map(tool => {
+                        const price = Math.max(1, Math.floor(tool.price * discountMultiplier));
+                        return `
+                            <div class="shop-item">
+                                <div class="shop-header">
+                                    <span class="emoji">${tool.emoji}</span>
+                                    <div class="shop-name">${tool.name}</div>
                                 </div>
-                                <button class="shop-buy-btn" ${tools[tool.id] ? 'disabled' : ''} onclick="buyTool('${tool.id}')">
-                                    Купить
-                                </button>
+                                <div class="shop-desc">${tool.desc}</div>
+                                <div class="shop-footer">
+                                    <div>
+                                        <div class="shop-price">${price} монет</div>
+                                        <div class="shop-owned ${tools[tool.id] ? '' : 'none'}">
+                                            ${tools[tool.id] ? 'Куплено' : 'Не куплено'}
+                                        </div>
+                                    </div>
+                                    <button class="shop-buy-btn" ${tools[tool.id] ? 'disabled' : ''} onclick="buyTool('${tool.id}')">
+                                        Купить
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
         
     } else if (location === 'equipment') {
+        const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
         content.innerHTML = `
             <div>
                 <p style="font-size:13px; color:#777; margin-bottom:6px;">
                     Оборудование ускоряет рост растений и открывает новое поле.
+                    ${getSkillEffect('discount') > 0 ? `Скидка: ${getSkillEffect('discount')}%` : ''}
                 </p>
                 <div class="shop-list" id="equipmentShop">
-                    ${EQUIPMENT_SHOP.map(item => `
-                        <div class="shop-item">
-                            <div class="shop-header">
-                                <span class="emoji">${item.emoji}</span>
-                                <div class="shop-name">${item.name}</div>
-                            </div>
-                            <div class="shop-desc">${item.desc}</div>
-                            <div class="shop-footer">
-                                <div>
-                                    <div class="shop-price">${item.price} монет</div>
-                                    <div class="shop-owned ${equipment[item.id] ? '' : 'none'}">
-                                        ${equipment[item.id] ? 'Куплено' : 'Не куплено'}
-                                    </div>
+                    ${EQUIPMENT_SHOP.map(item => {
+                        const price = Math.max(1, Math.floor(item.price * discountMultiplier));
+                        return `
+                            <div class="shop-item">
+                                <div class="shop-header">
+                                    <span class="emoji">${item.emoji}</span>
+                                    <div class="shop-name">${item.name}</div>
                                 </div>
-                                <button class="shop-buy-btn" ${equipment[item.id] ? 'disabled' : ''} onclick="buyEquipment('${item.id}')">
-                                    Купить
-                                </button>
+                                <div class="shop-desc">${item.desc}</div>
+                                <div class="shop-footer">
+                                    <div>
+                                        <div class="shop-price">${price} монет</div>
+                                        <div class="shop-owned ${equipment[item.id] ? '' : 'none'}">
+                                            ${equipment[item.id] ? 'Куплено' : 'Не куплено'}
+                                        </div>
+                                    </div>
+                                    <button class="shop-buy-btn" ${equipment[item.id] ? 'disabled' : ''} onclick="buyEquipment('${item.id}')">
+                                        Купить
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             </div>
         `;
         
     } else if (location === 'animals') {
+        const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
+        const animalSpeedMultiplier = 1 - (getSkillEffect('animal_speed') / 100);
         content.innerHTML = `
             <div>
                 <p style="font-size:13px; color:#777; margin-bottom:6px;">
                     Покупайте животных, ухаживайте за ними и собирайте продукцию!
+                    ${getSkillEffect('discount') > 0 ? `Скидка: ${getSkillEffect('discount')}%` : ''}
+                    ${getSkillEffect('animal_speed') > 0 ? `Скорость животных: +${getSkillEffect('animal_speed')}%` : ''}
                 </p>
                 <div style="margin-bottom:10px; text-align:center;">
                     <button class="seed-buy-btn" onclick="openSellProductsModal()" style="padding:8px 16px;">
@@ -879,7 +931,9 @@ function updateContent(location) {
                         const productionName = animal.production === 'milk' ? 'молоко' : animal.production === 'eggs' ? 'яйца' : 'шерсть';
                         const progressPercent = animal.feedLevel;
                         const timeSinceLast = Date.now() - animal.lastProduction;
-                        const productionReady = timeSinceLast >= animal.timeToProduce && animal.feedLevel > 0;
+                        const timeToProduce = Math.max(1000, animal.timeToProduce * animalSpeedMultiplier);
+                        const productionReady = timeSinceLast >= timeToProduce && animal.feedLevel > 0;
+                        const price = Math.max(1, Math.floor(animal.price * discountMultiplier));
                         
                         return `
                             <div class="animal-item">
@@ -896,8 +950,8 @@ function updateContent(location) {
                                     <div class="animal-progress-fill" style="width: ${progressPercent}%;"></div>
                                 </div>
                                 <div class="animal-footer">
-                                    <div class="animal-price">${animal.price} монет</div>
-                                    <button class="animal-buy-btn" ${animal.owned >= animal.max || coins < animal.price ? 'disabled' : ''} onclick="buyAnimal('${animal.id}')">
+                                    <div class="animal-price">${price} монет</div>
+                                    <button class="animal-buy-btn" ${animal.owned >= animal.max || coins < price ? 'disabled' : ''} onclick="buyAnimal('${animal.id}')">
                                         Купить
                                     </button>
                                     ${animal.owned > 0 ? `
@@ -927,10 +981,58 @@ function updateContent(location) {
             </div>
         `;
         
+    } else if (location === 'skills') {
+        content.innerHTML = `
+            <div>
+                <p style="font-size:13px; color:#777; margin-bottom:6px;">
+                    Прокачивайте навыки, чтобы улучшить свою ферму. Очки навыков получаются за каждый новый уровень.
+                </p>
+                <div class="skills-grid" id="skillsGrid">
+                    ${skills.map(skill => {
+                        const progressPercent = (skill.level / skill.maxLevel) * 100;
+                        const currentEffect = getSkillEffect(skill.id);
+                        return `
+                            <div class="skill-item">
+                                <div class="skill-header">
+                                    <span class="emoji">${skill.emoji}</span>
+                                    <div class="skill-name">${skill.name}</div>
+                                </div>
+                                <div class="skill-level">Уровень: ${skill.level}/${skill.maxLevel}</div>
+                                <div class="skill-desc">${skill.desc}</div>
+                                <div class="skill-progress">
+                                    <div class="skill-progress-fill" style="width: ${progressPercent}%;"></div>
+                                </div>
+                                <div class="skill-footer">
+                                    <div class="skill-cost">Стоимость: ${skill.nextCost} очков</div>
+                                    <button class="skill-upgrade-btn" ${skillPoints < skill.nextCost || skill.level >= skill.maxLevel ? 'disabled' : ''} onclick="upgradeSkill('${skill.id}')">
+                                        Прокачать
+                                    </button>
+                                </div>
+                                <div style="font-size:11px; color:#4b8b3b; margin-top:5px;">
+                                    Текущий эффект: ${getSkillDescription(skill.id, currentEffect)}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div style="margin-top:15px; padding:10px; background:#f0f9f0; border-radius:10px; font-size:12px; color:#555;">
+                    <strong>Описание навыков:</strong><br>
+                    • Сбор урожая: +1 монета за сбор за каждый уровень<br>
+                    • Скорость роста: +10% скорости роста за каждый уровень<br>
+                    • Уход за животными: +10% продукции животных за каждый уровень<br>
+                    • Скорость животных: +10% скорости производства за каждый уровень<br>
+                    • Бонус миниигр: +10% наград в минииграх за каждый уровень<br>
+                    • Скидки: -5% цен в магазинах за каждый уровень
+                </div>
+            </div>
+        `;
+        
     } else if (location === 'minigames') {
+        const minigameBonus = getSkillEffect('minigame_bonus');
         content.innerHTML = `
             <div class="minigames-placeholder">
                 Здесь доступны миниигры, за которые можно получить дополнительные монеты.
+                ${minigameBonus > 0 ? `<div style="color:#ff9800; font-weight:600; margin-bottom:10px;">Бонус миниигр: +${minigameBonus}% к наградам!</div>` : ''}
                 <div class="minigame-card">
                     🎣 Рыбалка, 🐰 Поймай морковку, 🐇 Кролик-змейка и 🚜 Трактор<br>
                     <button class="seed-buy-btn" style="margin-top:6px; padding:6px 14px;" onclick="openMinigame()">
@@ -940,6 +1042,89 @@ function updateContent(location) {
             </div>
         `;
     }
+}
+
+function getSkillEffect(skillId) {
+    const skill = skills.find(s => s.id === skillId);
+    if (!skill) return 0;
+    
+    switch(skillId) {
+        case 'harvesting':
+            return skill.level * 1;
+        case 'growth':
+            return skill.level * 10;
+        case 'animal_care':
+            return skill.level * 10;
+        case 'animal_speed':
+            return skill.level * 10;
+        case 'minigame_bonus':
+            return skill.level * 10;
+        case 'discount':
+            return skill.level * 5;
+        default:
+            return 0;
+    }
+}
+
+function getSkillDescription(skillId, effect) {
+    switch(skillId) {
+        case 'harvesting':
+            return `+${effect} монет за сбор`;
+        case 'growth':
+            return `+${effect}% скорости роста`;
+        case 'animal_care':
+            return `+${effect}% продукции животных`;
+        case 'animal_speed':
+            return `+${effect}% скорости производства`;
+        case 'minigame_bonus':
+            return `+${effect}% наград в минииграх`;
+        case 'discount':
+            return `-${effect}% цен в магазинах`;
+        default:
+            return '';
+    }
+}
+
+function applySkillEffects() {
+    const growthSkill = skills.find(s => s.id === 'growth');
+    if (growthSkill && growthSkill.level > 1) {
+        growthMultiplier = 1 / (1 + (growthSkill.level - 1) * 0.1);
+    }
+    
+    const harvestingSkill = skills.find(s => s.id === 'harvesting');
+    if (harvestingSkill && harvestingSkill.level > 1) {
+        harvestBonus += (harvestingSkill.level - 1);
+    }
+}
+
+function upgradeSkill(skillId) {
+    const skill = skills.find(s => s.id === skillId);
+    if (!skill) return;
+    
+    if (skillPoints < skill.nextCost) {
+        audioManager.playSound('error');
+        showMessage('Недостаточно очков навыков!');
+        return;
+    }
+    
+    if (skill.level >= skill.maxLevel) {
+        audioManager.playSound('error');
+        showMessage('Достигнут максимальный уровень навыка!');
+        return;
+    }
+    
+    audioManager.playSound('buy');
+    skillPoints -= skill.nextCost;
+    skill.level++;
+    skill.nextCost = Math.floor(skill.nextCost * 1.5);
+    
+    updateSkillPointsDisplay();
+    
+    applySkillEffects();
+    showMessage(`Навык "${skill.name}" повышен до уровня ${skill.level}!`);
+    
+    updateContent('skills');
+    saveGameProgress();
 }
 
 function createFarmGrid(gridId, startIndex) {
@@ -1042,10 +1227,13 @@ function handleTileClick(index, tileElement) {
 }
 
 function buySeed(seedId) {
+    const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
     const seed = SEEDS[seedId];
-    if (coins >= seed.price) {
+    const price = Math.max(1, Math.floor(seed.price * discountMultiplier));
+    
+    if (coins >= price) {
         audioManager.playSound('buy');
-        coins -= seed.price;
+        coins -= price;
         seedsInventory[seedId] += 5;
         document.getElementById('coinsLabel').textContent = coins;
         showMessage(`Куплено 5 семян ${seed.name}!`);
@@ -1057,12 +1245,15 @@ function buySeed(seedId) {
 }
 
 function buyTool(toolId) {
+    const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
     const tool = TOOLS_SHOP.find(t => t.id === toolId);
     if (!tool) return;
     
-    if (coins >= tool.price) {
+    const price = Math.max(1, Math.floor(tool.price * discountMultiplier));
+    
+    if (coins >= price) {
         audioManager.playSound('buy');
-        coins -= tool.price;
+        coins -= price;
         tools[toolId] = true;
         harvestBonus += tool.bonus;
         document.getElementById('coinsLabel').textContent = coins;
@@ -1075,12 +1266,15 @@ function buyTool(toolId) {
 }
 
 function buyEquipment(itemId) {
+    const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
     const item = EQUIPMENT_SHOP.find(e => e.id === itemId);
     if (!item) return;
     
-    if (coins >= item.price) {
+    const price = Math.max(1, Math.floor(item.price * discountMultiplier));
+    
+    if (coins >= price) {
         audioManager.playSound('buy');
-        coins -= item.price;
+        coins -= price;
         equipment[itemId] = true;
         
         if (itemId === 'tractor' || itemId === 'irrigation') {
@@ -1101,8 +1295,11 @@ function buyEquipment(itemId) {
 }
 
 function buyAnimal(animalId) {
+    const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
     const animal = animals.find(a => a.id === animalId);
     if (!animal) return;
+    
+    const price = Math.max(1, Math.floor(animal.price * discountMultiplier));
     
     if (animal.owned >= animal.max) {
         audioManager.playSound('error');
@@ -1110,9 +1307,9 @@ function buyAnimal(animalId) {
         return;
     }
     
-    if (coins >= animal.price) {
+    if (coins >= price) {
         audioManager.playSound('buy');
-        coins -= animal.price;
+        coins -= price;
         animal.owned++;
         animal.lastProduction = Date.now();
         document.getElementById('coinsLabel').textContent = coins;
@@ -1160,28 +1357,33 @@ function collectAnimalProduct(animalId) {
         return;
     }
     
+    const animalSpeedMultiplier = 1 - (getSkillEffect('animal_speed') / 100);
+    const timeToProduce = Math.max(1000, animal.timeToProduce * animalSpeedMultiplier);
     const timeSinceLast = Date.now() - animal.lastProduction;
-    if (timeSinceLast < animal.timeToProduce) {
+    
+    if (timeSinceLast < timeToProduce) {
         audioManager.playSound('error');
-        const timeLeft = Math.ceil((animal.timeToProduce - timeSinceLast) / 1000);
+        const timeLeft = Math.ceil((timeToProduce - timeSinceLast) / 1000);
         showMessage(`${animal.name} ещё не готова! Осталось: ${timeLeft} сек.`);
         return;
     }
     
     audioManager.playSound('harvest');
     
+    const animalCareBonus = 1 + (getSkillEffect('animal_care') / 100);
     let productAmount = 0;
+    
     switch(animal.production) {
         case 'milk':
-            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100));
+            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100) * animalCareBonus);
             animalProducts.milk += productAmount;
             break;
         case 'eggs':
-            productAmount = Math.floor(animal.owned * 2 * (animal.feedLevel / 100));
+            productAmount = Math.floor(animal.owned * 2 * (animal.feedLevel / 100) * animalCareBonus);
             animalProducts.eggs += productAmount;
             break;
         case 'wool':
-            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100));
+            productAmount = Math.floor(animal.owned * (animal.feedLevel / 100) * animalCareBonus);
             animalProducts.wool += productAmount;
             break;
     }
@@ -1199,7 +1401,8 @@ function sellAnimal(animalId) {
     const animal = animals.find(a => a.id === animalId);
     if (!animal || animal.owned <= 0) return;
     
-    const sellPrice = Math.floor(animal.price * 0.7);
+    const discountMultiplier = 1 - (getSkillEffect('discount') / 100);
+    const sellPrice = Math.floor(animal.price * 0.7 * discountMultiplier);
     
     audioManager.playSound('buy');
     coins += sellPrice;
@@ -1268,11 +1471,13 @@ function sellProduct(productType, amount) {
 function startAnimalProduction() {
     setInterval(() => {
         let updated = false;
+        const animalSpeedMultiplier = 1 - (getSkillEffect('animal_speed') / 100);
         
         animals.forEach(animal => {
             if (animal.owned > 0 && animal.feedLevel > 0) {
+                const timeToProduce = Math.max(1000, animal.timeToProduce * animalSpeedMultiplier);
                 const timeSinceLast = Date.now() - animal.lastProduction;
-                if (timeSinceLast >= animal.timeToProduce) {
+                if (timeSinceLast >= timeToProduce) {
                     animal.feedLevel = Math.max(0, animal.feedLevel - 5);
                     updated = true;
                     
@@ -1313,9 +1518,11 @@ function startFishingGame() {
 
 function catchFish() {
     audioManager.playSound('fishCatch');
+    const minigameBonus = 1 + (getSkillEffect('minigame_bonus') / 100);
     const fish = ['🐟 (+3 монеты)', '🐠 (+5 монет)', '🐡 (+8 монет)', '🩴 (ничего)', '🗑 (ничего)'];
     const result = fish[Math.floor(Math.random() * fish.length)];
-    const reward = result.includes('+3') ? 3 : result.includes('+5') ? 5 : result.includes('+8') ? 8 : 0;
+    let reward = result.includes('+3') ? 3 : result.includes('+5') ? 5 : result.includes('+8') ? 8 : 0;
+    reward = Math.floor(reward * minigameBonus);
     
     if (reward > 0) {
         audioManager.playSound('coin');
@@ -1326,6 +1533,7 @@ function catchFish() {
     
     document.getElementById('fishingResult').innerHTML = `
         <p>Вы поймали: ${result}</p>
+        ${reward > 0 ? `<p>С учётом бонуса: +${reward} монет!</p>` : ''}
         <button onclick="catchFish()" style="padding:8px 16px; margin-top:10px;">
             🎣 Забросить снова
         </button>
@@ -1352,6 +1560,7 @@ function startCarrotDropping() {
     const area = document.getElementById('carrotGameArea');
     area.innerHTML = '';
     let score = 0;
+    const minigameBonus = 1 + (getSkillEffect('minigame_bonus') / 100);
     const updateScore = () => {
         document.getElementById('carrotScore').textContent = `Очки: ${score}`;
     };
@@ -1370,8 +1579,9 @@ function startCarrotDropping() {
             carrot.innerHTML = '🥕';
             carrot.onclick = () => {
                 audioManager.playSound('carrotCatch');
-                score += 2;
-                coins += 2;
+                const bonusReward = Math.floor(2 * minigameBonus);
+                score += bonusReward;
+                coins += bonusReward;
                 document.getElementById('coinsLabel').textContent = coins;
                 updateScore();
                 carrot.remove();
@@ -1395,9 +1605,11 @@ function startCarrotDropping() {
 
 function startSnakeGame() {
     audioManager.playSound('click');
+    const minigameBonus = getSkillEffect('minigame_bonus');
     document.getElementById('minigameArea').innerHTML = `
         <h3>🐇 Кролик-змейка</h3>
         <p>Управляйте кроликом и собирайте морковки! Стрелки на клавиатуре или кнопки ниже.</p>
+        ${minigameBonus > 0 ? `<p style="color:#ff9800;">Бонус: +${minigameBonus}% к награде!</p>` : ''}
         <canvas id="snakeCanvas" width="400" height="400"></canvas>
         <div class="snake-info">
             <div>Собрано морковок: <span id="snakeScore">0</span></div>
@@ -1422,17 +1634,19 @@ function startSnakeGame() {
     `;
     
     if (typeof SnakeGame !== 'undefined') {
+        const minigameBonusMultiplier = 1 + (getSkillEffect('minigame_bonus') / 100);
         snakeGameInstance = new SnakeGame(
             'snakeCanvas', 
             'snakeScore', 
             'snakePrize', 
             function(score, prize) {
                 if (prize > 0) {
+                    const bonusPrize = Math.floor(prize * minigameBonusMultiplier);
                     audioManager.playSound('harvest');
-                    coins += prize;
+                    coins += bonusPrize;
                     document.getElementById('coinsLabel').textContent = coins;
                     addHarvest(score);
-                    showMessage(`Игра окончена! Вы получили ${prize} монет и ${score} к уровню!`);
+                    showMessage(`Игра окончена! Вы получили ${bonusPrize} монет (${prize} + бонус) и ${score} к уровню!`);
                 }
             }
         );
@@ -1442,9 +1656,11 @@ function startSnakeGame() {
 
 function startTractorGame() {
     audioManager.playSound('click');
+    const minigameBonus = getSkillEffect('minigame_bonus');
     document.getElementById('minigameArea').innerHTML = `
         <h3>🚜 Трактор</h3>
         <p>Управляйте трактором и перепрыгивайте препятствия! ПРОБЕЛ - прыжок, P - пауза, R - перезапуск</p>
+        ${minigameBonus > 0 ? `<p style="color:#ff9800;">Бонус: +${minigameBonus}% к награде!</p>` : ''}
         <canvas id="tractorCanvas" width="400" height="400"></canvas>
         <div class="tractor-game-info">
             <div>Преодолено препятствий: <span id="tractorScore">0</span></div>
@@ -1458,17 +1674,19 @@ function startTractorGame() {
     `;
     
     if (typeof TractorGame !== 'undefined') {
+        const minigameBonusMultiplier = 1 + (getSkillEffect('minigame_bonus') / 100);
         tractorGameInstance = new TractorGame(
             'tractorCanvas', 
             'tractorScore', 
             'tractorPrize', 
             function(score, prize) {
                 if (prize > 0) {
+                    const bonusPrize = Math.floor(prize * minigameBonusMultiplier);
                     audioManager.playSound('harvest');
-                    coins += prize;
+                    coins += bonusPrize;
                     document.getElementById('coinsLabel').textContent = coins;
                     addHarvest(Math.floor(score / 2));
-                    showMessage(`Игра окончена! Вы получили ${prize} монет и ${Math.floor(score / 2)} к уровню!`);
+                    showMessage(`Игра окончена! Вы получили ${bonusPrize} монет (${prize} + бонус) и ${Math.floor(score / 2)} к уровню!`);
                 }
             }
         );
@@ -1577,6 +1795,8 @@ async function saveProgressToServer() {
         nextLevelThreshold,
         animals,
         animalProducts,
+        skills,
+        skillPoints,
         lastSave: Date.now()
     };
     
@@ -1635,11 +1855,15 @@ async function loadProgressFromServer() {
             
             if (progress.animals) animals = progress.animals;
             if (progress.animalProducts) animalProducts = progress.animalProducts;
+            if (progress.skills) skills = progress.skills;
+            skillPoints = progress.skillPoints || 0;
             
             document.getElementById('coinsLabel').textContent = coins;
             updateLevelDisplay();
             updateAnimalProductsDisplay();
+            updateSkillPointsDisplay();
             
+            applySkillEffects();
             restoreGrowthTimers();
             
             showMessage('Прогресс загружен из облака! ☁️');
