@@ -5,10 +5,10 @@
 <title>FarmQuest - Ферма</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="styles.css">
-<script src="audio.js"></script>
-<script src="script.js"></script>
-<script src="snake-game.js"></script>
-<script src="tractor-game.js"></script>
+<script src="audio.js" defer></script>
+<script src="script.js" defer></script>
+<script src="snake-game.js" defer></script>
+<script src="tractor-game.js" defer></script>
 </head>
 <body>
 <div class="farm-container">
@@ -36,6 +36,11 @@
                 <div class="map-tile-title">Оборудование</div>
                 <div class="map-tile-desc">Рост и доп. поля</div>
             </div>
+            <div class="map-tile" data-location="animals">
+                <span class="icon">🐄</span>
+                <div class="map-tile-title">Животные</div>
+                <div class="map-tile-desc">Покупайте и собирайте продукты</div>
+            </div>
             <div class="map-tile" data-location="minigames">
                 <span class="icon">🎮</span>
                 <div class="map-tile-title">Миниигры</div>
@@ -50,9 +55,12 @@
                 <h2 id="detailTitle">Поля</h2>
                 <small>Персонаж: <span id="currentCharLabel">Гость</span></small>
             </div>
-            <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="header-right">
                 <div class="balance">
                     Монет: <span id="coinsLabel">100</span>
+                </div>
+                <div class="animal-products">
+                    🥛: <span id="milkLabel">0</span> 🥚: <span id="eggsLabel">0</span> 🧶: <span id="woolLabel">0</span>
                 </div>
                 <div class="level-system">
                     <div class="level-badge" onclick="showLevelInfo()" style="cursor: pointer;">
@@ -76,6 +84,7 @@
             <div class="detail-tab" data-tab="seeds">Семена</div>
             <div class="detail-tab" data-tab="tools">Инструменты</div>
             <div class="detail-tab" data-tab="equipment">Оборудование</div>
+            <div class="detail-tab" data-tab="animals">Животные</div>
             <div class="detail-tab" data-tab="minigames">Миниигры</div>
         </div>
 
@@ -88,17 +97,73 @@
     <div class="modal-content">
         <h2 id="minigameTitle">Миниигры</h2>
         <p id="minigameSubtitle">Выберите игру: Рыбалка, Поймай морковку, Кролик-змейка или Трактор</p>
-        <div style="display:flex; gap:8px; margin-bottom:10px; justify-content:center; flex-wrap:wrap;">
+        <div class="minigame-buttons">
             <button class="seed-buy-btn" onclick="startFishingGame()">🎣 Рыбалка</button>
             <button class="seed-buy-btn" onclick="startCarrotGame()">🐰 Поймай морковку</button>
             <button class="seed-buy-btn" onclick="startSnakeGame()">🐇 Кролик-змейка</button>
             <button class="seed-buy-btn" onclick="startTractorGame()">🚜 Трактор</button>
         </div>
-        <div id="minigameArea" style="border-radius:12px; border:1px solid #e0f2e9; padding:10px; text-align:center; font-size:13px; color:#555; min-height:260px;">
+        <div id="minigameArea" class="minigame-area">
             Выберите миниигру выше, чтобы начать.
         </div>
-        <div style="margin-top:15px; display:flex; gap:10px;">
+        <div class="modal-buttons">
             <button type="button" class="btn btn-start" onclick="closeMinigame()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="sellProductsModal">
+    <div class="modal-content">
+        <h2>Продажа продукции</h2>
+        <div class="products-list">
+            <div class="product-item">
+                <div class="product-header">
+                    <span class="product-emoji">🥛</span>
+                    <div class="product-name">Молоко</div>
+                </div>
+                <div class="product-info">
+                    <div>Количество: <span id="milkCount">0</span></div>
+                    <div>Цена за штуку: 3 монеты</div>
+                </div>
+                <div class="product-footer">
+                    <button class="product-sell-btn" onclick="sellProduct('milk', 1)">Продать 1</button>
+                    <button class="product-sell-btn" onclick="sellProduct('milk', 5)">Продать 5</button>
+                    <button class="product-sell-btn" onclick="sellProduct('milk', 'all')">Продать все</button>
+                </div>
+            </div>
+            <div class="product-item">
+                <div class="product-header">
+                    <span class="product-emoji">🥚</span>
+                    <div class="product-name">Яйца</div>
+                </div>
+                <div class="product-info">
+                    <div>Количество: <span id="eggCount">0</span></div>
+                    <div>Цена за штуку: 2 монеты</div>
+                </div>
+                <div class="product-footer">
+                    <button class="product-sell-btn" onclick="sellProduct('eggs', 1)">Продать 1</button>
+                    <button class="product-sell-btn" onclick="sellProduct('eggs', 5)">Продать 5</button>
+                    <button class="product-sell-btn" onclick="sellProduct('eggs', 'all')">Продать все</button>
+                </div>
+            </div>
+            <div class="product-item">
+                <div class="product-header">
+                    <span class="product-emoji">🧶</span>
+                    <div class="product-name">Шерсть</div>
+                </div>
+                <div class="product-info">
+                    <div>Количество: <span id="woolCount">0</span></div>
+                    <div>Цена за штуку: 5 монет</div>
+                </div>
+                <div class="product-footer">
+                    <button class="product-sell-btn" onclick="sellProduct('wool', 1)">Продать 1</button>
+                    <button class="product-sell-btn" onclick="sellProduct('wool', 5)">Продать 5</button>
+                    <button class="product-sell-btn" onclick="sellProduct('wool', 'all')">Продать все</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button type="button" class="btn btn-start" onclick="closeSellProductsModal()">Закрыть</button>
         </div>
     </div>
 </div>
@@ -110,10 +175,10 @@
     <div class="reward-bonus" id="rewardBonus">
         Получено: <span id="rewardAmount">0</span> монет
     </div>
-    <p style="font-size: 13px; color: #777; margin-bottom: 20px;" id="rewardNext">
+    <p class="reward-next" id="rewardNext">
         До следующего уровня: <span id="nextLevelProgress">0</span> урожая
     </p>
-    <button class="btn btn-start" onclick="closeRewardPanel()" style="padding: 12px 30px;">
+    <button class="btn btn-start" onclick="closeRewardPanel()">
         Продолжить игру
     </button>
 </div>
